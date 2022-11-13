@@ -3,24 +3,12 @@ import { galleryItems } from "./gallery-items.js";
 
 console.log(galleryItems);
 
-const instance = basicLightbox.create(`
-    <div class="modal">
-        <p>
-            Your first lightbox with just a few lines of code.
-            Yes, it's really that simple.
-        </p>
-    </div>
-`);
-instance.show();
 const refs = {
-  
+  gallery: document.querySelector(".gallery"),
 };
-
-// console.log(creatGaleryCard(galleryItems));
-function creatGaleryCard(galleryItems) {
-  return galleryItems
-    .map(({ preview, original, description }) => {
-      return `<div class="gallery__item">
+const markup = galleryItems
+  .map(({ preview, original, description }) => {
+    return `<div class="gallery__item">
   <a class="gallery__link" href="large-image.jpg">
     <img
       class="gallery__image"
@@ -30,24 +18,40 @@ function creatGaleryCard(galleryItems) {
     />
   </a>
 </div>`;
-    })
-    .join("");
-}
-// console.log(creatGaleryCard(galleryItems));
-const galleryContainer = document.querySelector(".gallery");
-const galleryMarkup = creatGaleryCard(galleryItems);
-galleryContainer.insertAdjacentHTML("afterbegin", galleryMarkup);
+  })
+  .join("");
 
-galleryContainer.addEventListener("click", onGalleryContainerClick);
+refs.gallery.innerHTML = markup;
 
-function onGalleryContainerClick(evt) {
-  evt.preventDefault();
-  const isImageGallery = evt.target.classList.contains("gallery__image");
-  if (!isImageGallery) {
-    return;
+const instance = basicLightbox.create(
+  `
+<img src="" width="800" height="600" loading= "lazy">
+`,
+  {
+    onShow: (instance) => {
+      document.addEventListener("keydown", closeModal);
+    },
+    onClose: (instance) => {
+      document.removeEventListener("keydown", closeModal);
+    },
   }
-  console.log(evt.target.dataset.source);
-}
+);
 
+const img = instance.element().querySelector("img");
 
+const clickOnImage = (event) => {
+  event.preventDefault();
+  if (event.target === event.currentTarget) return;
 
+  img.src = event.target.dataset.source;
+
+  instance.show();
+};
+
+const closeModal = (event) => {
+  if (event.key !== "Escape") return;
+
+  instance.close();
+};
+
+refs.gallery.addEventListener("click", clickOnImage);
